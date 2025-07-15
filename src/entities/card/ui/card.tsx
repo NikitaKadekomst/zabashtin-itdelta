@@ -1,10 +1,10 @@
 import { createComment } from "@/entities/comment/api/createComment"
-import { getImageComments, ImageObject } from "@/entities/comment/api/getImageComments"
 import { DialogHeader } from "@/shared/ui/shadcn/dialog"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/shared/ui/shadcn/dialog"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
 import { Comment } from '@/entities/comment/ui/comment'
+import { getImageObject } from "@/entities/comment/api/getImageComments"
 
 interface CardProps {
     imageId: number
@@ -15,16 +15,16 @@ export function Card({ imageId, imageUrl }: CardProps) {
     const [commentText, setCommentText] = useState('');
 
     const queryClient = useQueryClient();
-    const { data: imageObject = [], isPending: isCommentsLoading } = useQuery<ImageObject>({
+    const { data: imageObject, isPending: isImageObjectLoading } = useQuery<Comment[]>({
         queryFn: ({ queryKey }) => {
             const [_key, imageId] = queryKey;
-            return getImageComments(imageId as number);
+            return getImageObject(imageId as number);
         },
         queryKey: ['imageComments', imageId]
     });
 
     useEffect(() => {
-        console.log('Текущий список комментариев:', imageObject.comments)
+        console.log('Текущий объект изображения:', imageObject)
     }, [imageObject])
 
     const { mutate: commentCreate, isPending: isSubmitting } = useMutation({
@@ -66,14 +66,27 @@ export function Card({ imageId, imageUrl }: CardProps) {
                 <DialogHeader>
                     <DialogTitle>Изображение с ID: {imageId}</DialogTitle>
                 </DialogHeader>
-                {imageObject && <img className="w-full h-[200px] object-cover" src={imageObject.largeImage || ''} alt="Sunset in the mountains" />}
-                <div className="mt-4">
+                    {isImageObjectLoading ? (
+                        <div className="w-full h-[200px] flex items-center justify-center bg-gray-200 animate-pulse">
+                            <span>Загрузка изображения...</span>
+                        </div>
+                        ) : imageObject?.largeImage ? (
+                        <img 
+                            className="w-full h-[200px] object-cover" 
+                            src={imageObject.largeImage} 
+                        />
+                        ) : (
+                        <div className="w-full h-[200px] flex items-center justify-center bg-gray-200">
+                            <span>No image available</span>
+                        </div>
+                    )}                
+                    <div className="mt-4">
                     <h3 className="font-medium text-lg mb-2">Комментарии ({imageObject?.comments?.length || 0})</h3>
                     <div className="space-y-3 mb-4">
-                        {isCommentsLoading ? (
+                        {isImageObjectLoading ? (
                             <p className="text-gray-500 text-sm">Загрузка комментариев...</p>
-                        ) : imageObject.comments && imageObject.comments?.length > 0 ? (
-                            imageObject.comments?.map(comment => (
+                        ) : imageObject?.comments && imageObject.comments.length > 0 ? (
+                            imageObject.comments.map(comment => (
                                 <Comment key={comment.id} comment={comment} />
                             ))
                         ) : (
