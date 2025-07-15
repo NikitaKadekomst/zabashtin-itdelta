@@ -8,7 +8,7 @@ export default function Home() {
     <div className="w-[100%] h-[100%] gap-5">
       <header className="w-[100%]">
         <Banner />
-        <section className="user-section container mx-auto -mt-20 flex">
+        <section className="user-section container mx-auto -mt-20 flex flex-col sm:flex-row">
           <Avatar />
           <Contacts />
         </section>

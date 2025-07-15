@@ -3,7 +3,7 @@ import { getImageComments } from "@/entities/comment/api/getImageComments"
 import { DialogHeader } from "@/shared/ui/shadcn/dialog"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/shared/ui/shadcn/dialog"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Comment } from '@/entities/comment/ui/comment'
 
 interface CardProps {
@@ -33,7 +33,8 @@ export function Card({ imageId, imageUrl }: CardProps) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         if (commentText.trim()) {
-            commentCreate({ imageId, text: commentText })
+            const comment = { comment: commentText.trim()}
+            commentCreate({ imageId, comment })
         }
     }
     

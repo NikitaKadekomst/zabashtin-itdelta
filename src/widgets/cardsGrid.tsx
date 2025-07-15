@@ -7,18 +7,18 @@ export function CardsGrid() {
     const { images, isImagesLoading } = useImages()
 
     return (
-        <section className="container-fluid my-5 mx-10 grid grid-cols-3 gap-8">
+        <section className="container-fluid px-4 sm:px-10 my-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
             {isImagesLoading ? (
-                <div className="mt-3 col-span-3">
-                    <span>Загрузка изображений...</span>
+                <div className="mt-3 col-span-full">
+                <span>Загрузка изображений...</span>
                 </div>
             ) : images && images.length > 0 ? (
                 images.map((image) => (
-                    <Card key={image.id} imageId={image.id} imageUrl={image.image} />
+                <Card key={image.id} imageId={image.id} imageUrl={image.image} />
                 ))
             ) : (
-                <div className="mt-3 col-span-3">
-                    <span>Нет изображений в галерее</span>
+                <div className="mt-3 col-span-full">
+                <span>Нет изображений в галерее</span>
                 </div>
             )}
         </section>
