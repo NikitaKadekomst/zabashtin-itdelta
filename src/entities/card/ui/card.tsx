@@ -1,9 +1,9 @@
 import { createComment } from "@/entities/comment/api/createComment"
-import { getImageComments } from "@/entities/comment/api/getImageComments"
+import { getImageComments, ImageObject } from "@/entities/comment/api/getImageComments"
 import { DialogHeader } from "@/shared/ui/shadcn/dialog"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/shared/ui/shadcn/dialog"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Comment } from '@/entities/comment/ui/comment'
 
 interface CardProps {
@@ -12,31 +12,45 @@ interface CardProps {
 }
 
 export function Card({ imageId, imageUrl }: CardProps) {
-    const [commentText, setCommentText] = useState('')
+    const [commentText, setCommentText] = useState('');
 
-    const queryClient = useQueryClient()
-    const { data: imageObject, isPending: isCommentsLoading } = useQuery<Comment[]>({
+    const queryClient = useQueryClient();
+    const { data: imageObject = [], isPending: isCommentsLoading } = useQuery<ImageObject>({
         queryFn: ({ queryKey }) => {
-            const [_key, imageId] = queryKey; 
-            return getImageComments(imageId as number); 
+            const [_key, imageId] = queryKey;
+            return getImageComments(imageId as number);
         },
         queryKey: ['imageComments', imageId]
     });
 
-    const { mutate: commentCreate } = useMutation({
+    useEffect(() => {
+        console.log('Текущий список комментариев:', imageObject.comments)
+    }, [imageObject])
+
+    const { mutate: commentCreate, isPending: isSubmitting } = useMutation({
         mutationFn: createComment,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['imageComments', imageId]})
+            setCommentText('');
+            queryClient.invalidateQueries({ 
+                queryKey: ['imageComments', imageId],
+                refetchType: 'active' 
+            });
+        },
+        onError: (error) => {
+            console.error('Error creating comment:', error);
         }
-    })
+    });
 
     const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
-        if (commentText.trim()) {
-            const comment = { comment: commentText.trim()}
-            commentCreate({ imageId, comment })
+        e.preventDefault();
+        if (commentText.trim() && !isSubmitting) {
+            console.log('Отправка комментария:', commentText.trim());
+            commentCreate({ 
+                imageId, 
+                comment: { comment: commentText.trim() } 
+            });
         }
-    }
+    };
     
     return (
         <Dialog>
@@ -58,8 +72,8 @@ export function Card({ imageId, imageUrl }: CardProps) {
                     <div className="space-y-3 mb-4">
                         {isCommentsLoading ? (
                             <p className="text-gray-500 text-sm">Загрузка комментариев...</p>
-                        ) : imageObject?.comments && imageObject.comments.length > 0 ? (
-                            imageObject.comments.map(comment => (
+                        ) : imageObject.comments && imageObject.comments?.length > 0 ? (
+                            imageObject.comments?.map(comment => (
                                 <Comment key={comment.id} comment={comment} />
                             ))
                         ) : (

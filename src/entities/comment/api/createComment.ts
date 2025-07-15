@@ -10,6 +10,6 @@ export interface createCommentProps {
 }
 
 export const createComment = async ({ imageId, comment }: createCommentProps) => {
-    const response = await axiosInstance.post(`${API_URL}/image/${imageId}/comments`, { comment })
+    const response = await axiosInstance.post(`${API_URL}/image/${imageId}/comments`, comment)
     return response.data
 }
